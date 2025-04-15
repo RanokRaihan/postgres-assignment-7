@@ -1,10 +1,4 @@
--- Active: 1744440954108@@127.0.0.1@5432@bookstore_db
-
-
--- Active: 1744440954108@@127.0.0.1@5432@bookstore_db
-
-
--- create a "books" table with the following columns:
+-- create a "books" table :
 CREATE TABLE books (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -15,10 +9,7 @@ CREATE TABLE books (
     -- The CHECK constraint ensures that the published year is a valid year 
 );
 
-
-drop table books;
-
--- create a "customers" table with the following columns:
+-- create a "customers" table :
 CREATE TABLE customers (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -26,7 +17,7 @@ CREATE TABLE customers (
     joined_date DATE DEFAULT CURRENT_DATE
     );
 
--- create a "orders" table with the following columns:
+-- create a "orders" table :
 CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
@@ -76,4 +67,29 @@ INSERT INTO orders (customer_id, book_id, quantity, order_date) VALUES
 
 -- get all orders
 SELECT * FROM orders;
-drop table orders;
+
+-- 1️⃣ Find books that are out of stock.
+SELECT * FROM books WHERE stock = 0;
+
+-- 2️⃣ Retrieve the most expensive book in the store.
+SELECT * FROM books ORDER BY price DESC LIMIT 1;
+
+-- 3️⃣ Find the total number of orders placed by each customer.
+SELECT name, count(*) as total_order FROM orders
+LEFT JOIN customers ON orders.customer_id = customers.id GROUP BY customers.name;
+
+-- 4️⃣ Calculate the total revenue generated from book sales.
+select SUM(books.price * orders.quantity) AS total_revenue from orders
+LEFT JOIN books ON orders.book_id = books.id ;
+
+-- 5️⃣ List all customers who have placed more than one order.
+SELECT name, count(*) as orders_count FROM orders 
+LEFT JOIN customers ON orders.customer_id = customers.id 
+GROUP BY customers.name
+HAVING count(*) > 1;
+
+-- 7️⃣ Increase the price of all books published before 2000 by 10%.
+UPDATE books SET price = price * 1.10 WHERE published_year < 2000;
+
+-- 8️⃣ Delete customers who haven't placed any orders.
+DELETE FROM customers WHERE id NOT IN (SELECT DISTINCT customer_id FROM orders);
